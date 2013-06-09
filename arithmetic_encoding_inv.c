@@ -61,7 +61,7 @@ int arithmetic_encoding_inv(const char* file_to_encode, const char* encoded_file
 	  }
 	
 	// we deal with the zero-frequency problem initializing all counters to 1 and consequently NUM_CODEPOINTS to total_count
-	total_count = NUM_CODEPOINTS;   
+	total_count = NUM_CODEPOINTS;
 	for (i=1; i<NUM_CODEPOINTS; i++)
 		counter_increment(cumulative_sums_tree_pointer, i);
 	
@@ -146,7 +146,7 @@ int arithmetic_encoding_inv(const char* file_to_encode, const char* encoded_file
 		mask >>= 1;
 	  }
 	data >>= (sizeof(uint64_t) * 8 - i);
-	bit_inv_write(bbp, data, i);  
+	bit_inv_write(bbp, data, i);
 	
 	bit_inv_close(bbp);
 	CST_destroy(cumulative_sums_tree_pointer);

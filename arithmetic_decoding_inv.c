@@ -100,7 +100,7 @@ int arithmetic_decoding_inv(const char* encoded_file, const char* decoded_file)
     }
 
     // we deal with the zero-frequency problem initializing all counters to 1 and consequently NUM_CODEPOINTS to total_count
-    total_count = NUM_CODEPOINTS;   
+    total_count = NUM_CODEPOINTS;
     for (i=1; i<NUM_CODEPOINTS; i++)
 	counter_increment(cumulative_sums_tree_pointer, i);
 
