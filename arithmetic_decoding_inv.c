@@ -25,46 +25,46 @@
 #include <string.h>
 
 
-#define min(a,b) ( (a) < (b) ) ? (a) : (b)
+#define min(a,b) ((a) < (b)) ? (a) : (b)
 
 #define NUM_CODEPOINTS 257   // compatible with ASCII encoding
 uint64_t total_count;  // current total symbols counter
 uint64_t LOW, HIGH;
 
 
-static int bs( struct CST* CST_p, uint64_t x )
+static int bs(struct CST* CST_p, uint64_t x)
 {
     int l, m, h;
     uint64_t ncs_0, ncs_1, ratio;
     l = 0;
     h = NUM_CODEPOINTS;
-    ratio = ( HIGH - LOW ) / total_count;
-    for ( ;; )
+    ratio = (HIGH - LOW) / total_count;
+    for (;;)
     {
-	m = ( l + h ) / 2;
-	ncs_0 = cumulative_sums_lookup( CST_p, m ) * ratio + LOW;
-	ncs_1 = cumulative_sums_lookup( CST_p, m + 1 ) * ratio + LOW;
-	if ( m == NUM_CODEPOINTS-1 )
+	m = (l + h) / 2;
+	ncs_0 = cumulative_sums_lookup(CST_p, m) * ratio + LOW;
+	ncs_1 = cumulative_sums_lookup(CST_p, m + 1) * ratio + LOW;
+	if (m == NUM_CODEPOINTS-1)
 	{
-	    if ( ncs_0 <= x )
+	    if (ncs_0 <= x)
 		break;
 	}
-	else if ( ncs_0 <= x && x < ncs_1 )
+	else if (ncs_0 <= x && x < ncs_1)
 	    break;
-	if ( x < ncs_0 )
+	if (x < ncs_0)
 	    h = m;
 	else
 	    l = m + 1;
-	if ( l >= h )
+	if (l >= h)
 	    break;
     }
-    if ( l >= h )
+    if (l >= h)
 	return -1;
     return m;
 }
 
 
-int arithmetic_decoding_inv( const char* encoded_file, const char* decoded_file )
+int arithmetic_decoding_inv(const char* encoded_file, const char* decoded_file)
 {
     FILE* fout;
     uint8_t byte;
@@ -77,43 +77,43 @@ int arithmetic_decoding_inv( const char* encoded_file, const char* decoded_file 
     int bits_to_read;
     struct CST* cumulative_sums_tree_pointer;
 
-    struct InvertingBitBuffer* bbp = bit_inv_open( encoded_file, BIT_BUFFER_READ );
-    if ( bbp == NULL )
+    struct InvertingBitBuffer* bbp = bit_inv_open(encoded_file, BIT_BUFFER_READ);
+    if (bbp == NULL)
     {
-	printf( "%s: No such file\n", encoded_file );
+	printf("%s: No such file\n", encoded_file);
 	return -1;
     }
 
-    cumulative_sums_tree_pointer = CST_create( NUM_CODEPOINTS );
-    if ( cumulative_sums_tree_pointer == NULL )
+    cumulative_sums_tree_pointer = CST_create(NUM_CODEPOINTS);
+    if (cumulative_sums_tree_pointer == NULL)
     {
-	printf( "Error: CST creation failed\n" );
-	bit_inv_close( bbp );
+	printf("Error: CST creation failed\n");
+	bit_inv_close(bbp);
 	return -1;
     }
 
-    fout = fopen( decoded_file, "wb" );
-    if ( fout == NULL )
+    fout = fopen(decoded_file, "wb");
+    if (fout == NULL)
     {
-	printf( "Error: cannot create output file %s\n", decoded_file );
+	printf("Error: cannot create output file %s\n", decoded_file);
 	return -1;
     }
 
     // we deal with the zero-frequency problem initializing all counters to 1 and consequently NUM_CODEPOINTS to total_count
     total_count = NUM_CODEPOINTS;   
-    for ( i=1; i<NUM_CODEPOINTS; i++ )
-	counter_increment( cumulative_sums_tree_pointer, i );
+    for (i=1; i<NUM_CODEPOINTS; i++)
+	counter_increment(cumulative_sums_tree_pointer, i);
 
     LOW = 0;
     HIGH = 0xFFFFFFFFFFFFFFFF;
-    bits_to_read = sizeof( uint64_t ) * 8;
+    bits_to_read = sizeof(uint64_t) * 8;
     stream_slice = 0x0000000000000000;
-    for ( ;; )
+    for (;;)
     {
-	n = bit_inv_read( bbp, &tmp, bits_to_read );
-	if ( n == -1 )
+	n = bit_inv_read(bbp, &tmp, bits_to_read);
+	if (n == -1)
 	{
-	    printf( "Error occurred!!\n" );
+	    printf("Error occurred!!\n");
 	    return -1;
 	}
 	// here n could be zero, but this is not a concern
@@ -121,33 +121,33 @@ int arithmetic_decoding_inv( const char* encoded_file, const char* decoded_file 
 
 	i = 0;
 	mask = 0x0000000000000001;
-	while ( i < bits_to_read )
+	while (i < bits_to_read)
 	{
 	    stream_slice <<= 1;
-	    if ( tmp & mask )
+	    if (tmp & mask)
 		stream_slice |= 0x0000000000000001;
 	    mask <<= 1;
 	    i++;
 	}
 
-	n = bs( cumulative_sums_tree_pointer, stream_slice );
-	if ( n == -1 )
+	n = bs(cumulative_sums_tree_pointer, stream_slice);
+	if (n == -1)
 	    return -1;
-	if ( n == NUM_CODEPOINTS - 1 )  // EOF symbol received
+	if (n == NUM_CODEPOINTS - 1)  // EOF symbol received
 	    break;
-	byte = ( uint8_t )n;
-	fwrite( &byte, 1, 1, fout );
+	byte = (uint8_t)n;
+	fwrite(&byte, 1, 1, fout);
 
-	tmp = ( ( HIGH - LOW ) / total_count );
-	HIGH = LOW + tmp * ( cumulative_sums_lookup( cumulative_sums_tree_pointer, byte + 1 ) );
-	LOW = LOW + tmp * cumulative_sums_lookup( cumulative_sums_tree_pointer, byte );
+	tmp = ((HIGH - LOW) / total_count);
+	HIGH = LOW + tmp * (cumulative_sums_lookup(cumulative_sums_tree_pointer, byte + 1));
+	LOW = LOW + tmp * cumulative_sums_lookup(cumulative_sums_tree_pointer, byte);
 
 	// deadlock resolution
-	if ( ( HIGH & 0xC000000000000000 ) == 0x8000000000000000 && ( LOW & 0xC000000000000000 ) == 0x4000000000000000 )
+	if ((HIGH & 0xC000000000000000) == 0x8000000000000000 && (LOW & 0xC000000000000000) == 0x4000000000000000)
 	{
 	    i_d = 2;
 	    mask = 0x2000000000000000;
-	    while ( mask && ( LOW & mask ) && ( HIGH & mask ) == 0 )
+	    while (mask && (LOW & mask) && (HIGH & mask) == 0)
 	    {
 		i_d++;
 		mask >>= 1;
@@ -164,7 +164,7 @@ int arithmetic_decoding_inv( const char* encoded_file, const char* decoded_file 
 	tmp = LOW ^ HIGH;
 	i_ss = 0;
 	mask = 0x8000000000000000;
-	while ( mask && ( tmp & mask ) == 0 )
+	while (mask && (tmp & mask) == 0)
 	{
 	    i_ss++;
 	    mask >>= 1;
@@ -174,13 +174,13 @@ int arithmetic_decoding_inv( const char* encoded_file, const char* decoded_file 
 	HIGH <<= i_ss;
 
 	// adaptive update
-	counter_increment( cumulative_sums_tree_pointer, byte + 1 );
+	counter_increment(cumulative_sums_tree_pointer, byte + 1);
 	total_count++;
     }
 
-    bit_inv_close( bbp );
-    CST_destroy( cumulative_sums_tree_pointer );
-    fclose( fout );
+    bit_inv_close(bbp);
+    CST_destroy(cumulative_sums_tree_pointer);
+    fclose(fout);
 
     return 0;
 }

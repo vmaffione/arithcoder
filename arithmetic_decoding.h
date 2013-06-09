@@ -17,5 +17,5 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-int arithmetic_decoding( const char* encoded_file, const char* decoded_file );
-int arithmetic_decoding_inv( const char* encoded_file, const char* decoded_file );
+int arithmetic_decoding(const char* encoded_file, const char* decoded_file);
+int arithmetic_decoding_inv(const char* encoded_file, const char* decoded_file);
