@@ -35,4 +35,4 @@ bittry.o: bittry.c bitbuffer.h
 	$(CC) $(CFLAGS) -c bittry.c
 
 clean:
-	rm test *.o decoded compressed
+	-rm test *.o decoded compressed
