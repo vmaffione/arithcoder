@@ -1,0 +1,38 @@
+CC=gcc
+CFLAGS=-Wall -O2
+OBJS=main.o arithmetic_encoding.o arithmetic_decoding.o bitbuffer.o cumulative_sums_tree.o
+#OBJS=main.o arithmetic_encoding_inv.o arithmetic_decoding_inv.o bitbuffer.o cumulative_sums_tree.o  #inverting
+
+
+test: $(OBJS)
+	$(CC) $(CFLAGS) -o test $(OBJS)
+
+main.o: main.c arithmetic_encoding.h arithmetic_decoding.h
+	$(CC) $(CFLAGS) -c main.c
+	
+arithmetic_encoding.o: arithmetic_encoding.c bitbuffer.h cumulative_sums_tree.h
+	$(CC) $(CFLAGS) -c arithmetic_encoding.c
+
+arithmetic_decoding.o: arithmetic_decoding.c bitbuffer.h cumulative_sums_tree.h
+	$(CC) $(CFLAGS) -c arithmetic_decoding.c
+	
+arithmetic_encoding_inv.o: arithmetic_encoding_inv.c bitbuffer.h cumulative_sums_tree.h
+	$(CC) $(CFLAGS) -c arithmetic_encoding_inv.c
+
+arithmetic_decoding_inv.o: arithmetic_decoding_inv.c bitbuffer.h cumulative_sums_tree.h
+	$(CC) $(CFLAGS) -c arithmetic_decoding_inv.c
+
+bitbuffer.o: bitbuffer.c bitbuffer.h
+	$(CC) $(CFLAGS) -c bitbuffer.c
+	
+cumulative_sums_tree.o: cumulative_sums_tree.c
+	$(CC) $(CFLAGS) -c cumulative_sums_tree.c
+
+bittry: bittry.o bitbuffer.o
+	$(CC) $(CFLAGS) -o bittry bittry.o bitbuffer.o
+
+bittry.o: bittry.c bitbuffer.h
+	$(CC) $(CFLAGS) -c bittry.c
+
+clean:
+	rm test *.o decoded compressed
