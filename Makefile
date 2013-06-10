@@ -1,11 +1,18 @@
 CC=gcc
 CFLAGS=-Wall -O2
-OBJS=test.o arithmetic_encoding.o arithmetic_decoding.o bitbuffer.o cumulative_sums_tree.o
+OBJS=arithmetic_encoding.o arithmetic_decoding.o bitbuffer.o cumulative_sums_tree.o
+TOBJS=test.o $(OBJS)
+MOBJS=main.o $(OBJS)
 #OBJS=test.o arithmetic_encoding_inv.o arithmetic_decoding_inv.o bitbuffer.o cumulative_sums_tree.o  #inverting
 
 
-test: $(OBJS)
-	$(CC) $(CFLAGS) -o test $(OBJS)
+all: main test
+
+main: $(MOBJS)
+	$(CC) $(CFLAGS) -o main $(MOBJS)
+
+test: $(TOBJS)
+	$(CC) $(CFLAGS) -o test $(TOBJS)
 
 test.o: test.c arithmetic_encoding.h arithmetic_decoding.h
 	$(CC) $(CFLAGS) -c test.c
