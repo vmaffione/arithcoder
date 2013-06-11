@@ -33,24 +33,22 @@ void usage()
     exit(1);
 }
 
-struct timeval time_diff(struct timeval* t_finish_p, struct timeval* t_start_p)
+struct timeval time_diff(struct timeval* t_finish_p,
+				    struct timeval* t_start_p)
 {
     struct timeval result;
-    if (t_finish_p->tv_sec == t_start_p->tv_sec)
-    {
+
+    if (t_finish_p->tv_sec == t_start_p->tv_sec) {
 	result.tv_sec = 0;
 	result.tv_usec = t_finish_p->tv_usec - t_start_p->tv_usec;
-    }
-    else if (t_finish_p->tv_usec >= t_start_p->tv_usec)
-    {
+    } else if (t_finish_p->tv_usec >= t_start_p->tv_usec) {
 	result.tv_sec = t_finish_p->tv_sec - t_start_p->tv_sec;
 	result.tv_usec = t_finish_p->tv_usec - t_start_p->tv_usec;
-    }
-    else
-    {
+    } else {
 	result.tv_sec = t_finish_p->tv_sec - t_start_p->tv_sec - 1;
 	result.tv_usec = t_finish_p->tv_usec + 1000000 - t_start_p->tv_usec;
     }
+
     return result;
 }
 
@@ -64,11 +62,36 @@ struct timeval time_diff(struct timeval* t_finish_p, struct timeval* t_start_p)
 #define DECODING_FUNCTION arithmetic_decoding
 #endif
 
+
+char * fill_output_filename(const char *infile, char function)
+{
+    int copylen, alloclen;
+    char *outfile;
+
+    /* Build the output filename */
+    copylen = strlen(infile);
+    if (infile[copylen-2] == '.' && infile[copylen-1] == 'e'
+	    && function == 'd') {
+	copylen -= 2;
+	alloclen = copylen;
+    } else {
+	alloclen = copylen + 2;
+    }
+    outfile = malloc(alloclen + 1);
+    memcpy(outfile, infile, copylen);
+    if (alloclen > copylen) {
+	outfile[copylen] = '.';
+	outfile[copylen+1] = function;
+    }
+    outfile[alloclen] = '\0';
+
+    return outfile;
+}
+
 int main(int argc, char **argv)
 {
     int result;
     char function;
-    int len;
     char *outfile;
     struct timeval t_start;
     struct timeval t_finish;
@@ -86,13 +109,7 @@ int main(int argc, char **argv)
 	exit(1);
     }
 
-    len = strlen(argv[2]);
-    //if (argv[2][len-2] == '.' && argv[2][len-1] == 'e' && function == 'd')
-    outfile = malloc(len + 2 + 1);
-    memcpy(outfile, argv[2], len);
-    outfile[len] = '.';
-    outfile[len+1] = function;
-    outfile[len+2] = '\0';
+    outfile = fill_output_filename(argv[2], function);
 
     gettimeofday(&t_start, NULL);
     if (function == 'e') {
@@ -108,3 +125,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
